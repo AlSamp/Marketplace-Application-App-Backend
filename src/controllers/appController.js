@@ -1,61 +1,15 @@
 import mongoose from 'mongoose';
-import { ContactSchema } from '../models/appModel';
+import { UserSchema } from '../models/appModel';
 import { MarketPostSchema } from '../models/appModel';
 import multer from 'multer'; // for image upload and storing
 
 
-const Contact = mongoose.model('Contact', ContactSchema);
 const MarketPost = mongoose.model('MarketPost', MarketPostSchema);
+const User = mongoose.model('User', UserSchema);
 
-export const addNewContact = (req, res) => {
-    let newContact = new Contact(req.body);
-
-    newContact.save((err, contact) => {
-        if (err) {
-            res.send(err);
-        }
-        res.json(contact);
-    });
-};
-
-export const getContacts = (req, res) => {
-    Contact.find({}, (err, contact) => {
-        if (err) {
-            res.send(err);
-        }
-        res.json(contact);
-    });
-};
-
-export const getContactWithID = (req, res) => {
-    Contact.findById(req.params.contactId, (err, contact) => {
-        if (err) {
-            res.send(err);
-        }
-        res.json(contact);
-    });
-}
-
-export const updateContact = (req, res) => {
-    Contact.findByIdAndUpdate({ _id: req.params.contactId }, req.body, { new: true }, (err, contact) => {
-        if (err) {
-            res.send(err);
-        }
-        res.json(contact);
-    })
-}
-
-export const deleteContact = (req, res) => {
-    Contact.deleteOne({ _id: req.params.contactId }, (err, contact) => {
-        if (err) {
-            res.send(err);
-        }
-        res.json({ message: 'Successfully deleted contact' });
-    })
-}
-
-////  Post controller
+////  MarketPost controller
 // multer tutorial used https://www.youtube.com/watch?v=srPXMt1Q0nY
+// https://www.youtube.com/watch?v=5AaIJQcI0dI&t=369s
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/')
@@ -68,7 +22,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).single('image');
 
-export const addNewMarketPost = (req, res) => {
+export const createNewMarketPost = (req, res) => {
 
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
@@ -115,6 +69,15 @@ export const getMarketPostWithID = (req, res) => {
         res.json(marketPost);
     });
 }
+export const getMarketPostBySellerId = (req, res) => { // get posts by seller id
+    MarketPost.find({ sellerId: req.params.targetId }, (err, marketPost) => {
+        if (err) {
+            res.send(err);
+        }
+        res.json(marketPost);
+    });
+}
+
 
 export const updateMarketPost = (req, res) => {
     MarketPost.findByIdAndUpdate({ _id: req.params.marketPostId }, req.body, { new: true }, (err, marketPost) => {
@@ -132,5 +95,65 @@ export const deleteMarketPost = (req, res) => {
         }
         res.json({ message: 'Successfully deleted MarketPost' });
     })
+}
+
+// login Controller functionality
+// https://www.loginradius.com/blog/engineering/guest-post/nodejs-authentication-guide/
+
+
+export const SignUp = (req, res) => {
+
+    if (req.body.password.length < 6) {
+        return res.status(400).json({ message: "Password must be 6 or more characters" })
+    }
+    else {
+        // if password is ok create user
+        let newUser = new User({  // create user
+            userName: req.body.userName,
+            password: req.body.password
+        })
+
+        newUser.save((err, user) => { // save user
+            if (err) {
+                res.send(err);
+            }
+            res.json(user);
+        });
+
+    }
+}
+
+export const Login = async (req, res) => { //TODO refactor
+    let authUser = req.body;
+    if (!authUser.userName || !authUser.password) {
+        return res.status(400).json({
+            message: "Username or password not present"
+        })
+    }
+
+    try {
+        const isUser = await User.findOne(authUser);
+        if (!isUser) {
+
+            res.status(401).json({
+                message: "LOGIN : UNSUCCESSFUL LOGIN",
+                error: 'USER NOT FOUND',
+
+            })
+        }
+        else {
+            res.status(200).json({
+                message: "LOGIN SUCCESSFUL",
+                isUser,
+            })
+        }
+    }
+    catch (error) {
+        console.log("Issue with " + authUser.userName + " : " + authUser.password);
+        res.status(400).json({
+            message: "LOGIN : ERROR HAS OCCURED",
+            error: error.message,
+        })
+    }
 }
 

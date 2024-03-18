@@ -1,43 +1,18 @@
 import {
-    addNewContact,
-    getContacts,
-    getContactWithID,
-    updateContact,
-    deleteContact,
-
-    addNewMarketPost,
+    createNewMarketPost,
     getMarketPosts,
     getMarketPostWithID,
     updateMarketPost,
-    deleteMarketPost
+    deleteMarketPost,
+    Register,
+    Login,
+    SignUp,
+    getMarketPostBySellerId
 } from '../controllers/appController';
 
-//const multer = require('multer');
-//const upload = multer({dest:'upload'});
 
 const routes = (app) => {
-    app.route('/contact')
-        .get((req, res, next) => {
-            // middleware
-            console.log(`Request from: ${req.originalUrl}`)
-            console.log(`Request type: ${req.method}`)
-            next();
-        }, getContacts)
-
-        // POST endpoint
-        .post(addNewContact);
-
-    app.route('/contact/:contactId')
-        // get specific contact
-        .get(getContactWithID)
-
-        // put request
-        .put(updateContact)
-
-        // delete request
-        .delete(deleteContact);
-
-    // post
+    // marketPost
     app.route('/marketPost')
         .get((req, res, next) => {
             // middleware
@@ -47,7 +22,7 @@ const routes = (app) => {
         }, getMarketPosts)
 
         // POST endpoint
-        .post(addNewMarketPost);
+        .post(createNewMarketPost);
 
     app.route('/marketPost/:marketPostId')
         // get specific marketPost
@@ -58,6 +33,26 @@ const routes = (app) => {
 
         // delete request
         .delete(deleteMarketPost);
+
+    app.route('/sellerId/:targetId')
+        // get all posts by a specific seller
+        .get(getMarketPostBySellerId)
+
+    app.route('/signUp')
+        .post((req, res, next) => {
+            // middleware
+            console.log(`Request from: ${req.originalUrl}`)
+            console.log(`Request type: ${req.method}`)
+            next();
+        }, SignUp);
+
+    app.route('/login')
+        .post((req, res, next) => {
+            // middleware
+            console.log(`Request from: ${req.originalUrl}`)
+            console.log(`Request type: ${req.method}`)
+            next();
+        }, Login);
 }
 
 

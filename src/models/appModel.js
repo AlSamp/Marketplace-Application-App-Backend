@@ -2,36 +2,6 @@ import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
-export const ContactSchema = new Schema({
-    firstName: {
-        type: String,
-        required: 'Enter a first name'
-    },
-    lastName: {
-        type: String,
-        required: 'Enter a last name'
-    },
-    email: {
-        type: String
-    },
-    company: {
-        type: String
-    },
-    phone: {
-        type: String
-    },
-    project: {
-        type: String
-    },
-    notes: {
-        type: String
-    },
-    created_date: {
-        type: Date,
-        default: Date.now
-    }
-});
-
 export const MarketPostSchema = new Schema({
     species: {
         type: String,
@@ -61,3 +31,22 @@ export const MarketPostSchema = new Schema({
         default: Date.now
     }
 });
+
+export const UserSchema = new Schema({
+    userName: {
+        type: String,
+        unique: true, // no duplicate user names allowed
+        required: true,
+    },
+    password: {
+        type: String,
+        minLength: 6,
+        required: true,
+    },
+    role: {
+        type: String,
+        default: "Basic"
+
+    }
+});
+
