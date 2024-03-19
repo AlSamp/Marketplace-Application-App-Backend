@@ -79,15 +79,44 @@ export const getMarketPostBySellerId = (req, res) => { // get posts by seller id
 }
 
 
-export const updateMarketPost = (req, res) => {
-    MarketPost.findByIdAndUpdate({ _id: req.params.marketPostId }, req.body, { new: true }, (err, marketPost) => {
-        if (err) {
-            res.send(err);
-        }
-        res.json(marketPost);
-    })
-}
+// export const updateMarketPost = (req, res) => {
+//     MarketPost.findByIdAndUpdate({ _id: req.params.marketPostId }, req.body, { new: true }, (err, marketPost) => {
+//         console.log('Request Body:', req.body);
 
+//         if (err) {
+//             res.send(err);
+//         }
+//         res.json(marketPost);
+//     })
+// }
+
+export const updateMarketPost = (req, res) => {
+    upload(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            return (err);
+        }
+
+        // Assuming req.file is the updated image file, if any
+        let updateFields = {
+            species: req.body.species,
+            breed: req.body.breed,
+            price: req.body.price,
+            sellerName: req.body.sellerName,
+            description: req.body.description,
+        };
+
+        if (req.file) {
+            updateFields.image = req.file.path;
+        }
+
+        MarketPost.findByIdAndUpdate(req.params.marketPostId, updateFields, { new: true }, (err, marketPost) => {
+            if (err) {
+                res.send(err);
+            }
+            res.json(marketPost);
+        });
+    });
+};
 export const deleteMarketPost = (req, res) => {
     MarketPost.deleteOne({ _id: req.params.marketPostId }, (err, marketPost) => {
         if (err) {
