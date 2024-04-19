@@ -7,7 +7,13 @@ import {
     Register,
     Login,
     SignUp,
-    getMarketPostBySellerId
+    getMarketPostBySellerId,
+
+    sendMessage,
+    createChat,
+    getUserChats,
+    getUserName,
+    getSelectedChat,
 } from '../controllers/appController';
 
 
@@ -53,6 +59,26 @@ const routes = (app) => {
             console.log(`Request type: ${req.method}`)
             next();
         }, Login);
+
+    // Messenger routes
+    app.route('/messages')
+        .post(sendMessage);
+
+    app.route('/messages/createChat')
+        .post(createChat);
+
+    app.route('/messages/getUserChats/:userId')
+        .get(getUserChats);
+
+    app.route('/messages/getSelectedChat/:chatId')
+        .get(getSelectedChat);
+
+
+
+    app.route('/messages/getUserName/:userId')
+        .get(getUserName);
+
+
 }
 
 

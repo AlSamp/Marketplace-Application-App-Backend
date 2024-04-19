@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
 import { UserSchema } from '../models/appModel';
 import { MarketPostSchema } from '../models/appModel';
+import { MessageSchema } from '../models/appModel';
+import { ChatSchema } from '../models/appModel';
 import multer from 'multer'; // for image upload and storing
 
 
 const MarketPost = mongoose.model('MarketPost', MarketPostSchema);
 const User = mongoose.model('User', UserSchema);
+const Message = mongoose.model('Message', MessageSchema);
+const Chat = mongoose.model('Chat', ChatSchema);
 
 ////  MarketPost controller
 // multer tutorial used https://www.youtube.com/watch?v=srPXMt1Q0nY
@@ -78,17 +82,6 @@ export const getMarketPostBySellerId = (req, res) => { // get posts by seller id
     });
 }
 
-
-// export const updateMarketPost = (req, res) => {
-//     MarketPost.findByIdAndUpdate({ _id: req.params.marketPostId }, req.body, { new: true }, (err, marketPost) => {
-//         console.log('Request Body:', req.body);
-
-//         if (err) {
-//             res.send(err);
-//         }
-//         res.json(marketPost);
-//     })
-// }
 
 export const updateMarketPost = (req, res) => {
     upload(req, res, function (err) {
@@ -185,4 +178,105 @@ export const Login = async (req, res) => { //TODO refactor
         })
     }
 }
+
+////////////////////////////// Messenger ///////////////////////
+export const sendMessage = async (req, res) => {
+    const { senderId, recipientId, content } = req.body; // Extract data from request body
+
+    try {
+        // Check if a chat between the sender and recipient already exists
+        let chat = await Chat.findOne({
+            participants: { $all: [senderId, recipientId] }
+        });
+
+        // If a chat doesn't exist, create a new one
+        if (!chat) {
+            chat = await Chat.create({ participants: [senderId, recipientId], messages: [] });
+        }
+
+        // Add the new message to the chat's messages array
+        chat.messages.push({ sender: senderId, content: content });
+
+        // Save the updated chat document
+        await chat.save();
+
+        res.status(200).json({ message: "Message sent successfully", data: chat.messages });
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).json({ error: 'Failed to send message' });
+    }
+};
+
+export const createChat = async (req, res) => {
+    const { senderId, recipientId } = req.body; // Extract data from request body
+
+    try {
+        // Search db for a chat with both participants and return the chat
+        let chat = await Chat.findOne({
+            participants: { $all: [senderId, recipientId] }
+        });
+
+        // If chat doesnt exist create one
+        if (!chat) {
+            chat = await Chat.create({ participants: [senderId, recipientId], messages: [] });
+        }
+        //let chat getSelectedChat()
+        console.log(chat);
+        res.status(200).json({ chat });
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).json({ error: 'Failed to send message' });
+    }
+};
+
+export const getUserChats = async (req, res) => {
+    try {
+        const { userId } = req.params; // Extract user ID from request body
+
+        // Find all chats where the user is a participant
+        const chats = await Chat.find({ participants: userId });
+
+        // Send the fetched chats as a response
+        res.status(200).json({ chats });
+    } catch (error) {
+        console.error('Error fetching user chats:', error);
+        res.status(500).json({ error: 'Failed to fetch user chats' });
+    }
+};
+
+export const getSelectedChat = async (req, res) => {
+    try {
+        const { chatId } = req.params; // Extract user ID from request body
+
+        // Find all chats where the user is a participant
+        const chat = await Chat.findById(chatId);
+        console.log(chat);
+        // Send the fetched chats as a response
+        res.status(200).json({ chat });
+    } catch (error) {
+        console.error('Error fetching selected chat:', error);
+        res.status(500).json({ error: 'Failed to fetch selected chat' });
+    }
+};
+
+export const getUserName = async (req, res) => {
+    try {
+        const { userId } = req.params; // Extract user ID from request parameters
+
+        // Find the user by their ID
+        const user = await User.findById(userId);
+
+        if (!user) {
+            // If user with the provided ID is not found, return a 404 response
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Return the user's name in the response
+        res.status(200).json({ userName: user.userName });
+    } catch (error) {
+        console.error('Error fetching user name:', error);
+        res.status(500).json({ error: 'Failed to fetch user name' });
+    }
+};
+
 

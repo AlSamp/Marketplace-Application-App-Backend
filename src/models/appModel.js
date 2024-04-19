@@ -50,3 +50,41 @@ export const UserSchema = new Schema({
     }
 });
 
+export const MessageSchema = new Schema({
+    chatId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Chat', // Reference to the Chat model
+        required: true
+    },
+    sender: {
+        type: Schema.Types.ObjectId,
+        ref: 'User', // Reference to the User model
+        required: true
+    },
+    content: {
+        type: String,
+        required: true
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+export const ChatSchema = new Schema({
+    participants: [{
+        type: Schema.Types.ObjectId,
+        ref: 'User' // Reference to the User model for participants in the chat
+    }],
+    messages: [{
+        sender: {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        content: String,
+        timestamp: {
+            type: Date,
+            default: Date.now
+        }
+    }]
+});
